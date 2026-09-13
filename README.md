@@ -1,10 +1,10 @@
 # Combinatorics of Trust over Knowledge Graphs
 
-Multi-hop question answering over a knowledge graph usually gets framed as retrieval: fetch a relevant subgraph, hand it to a language model, hope for the best. Fetching turns out to be the easy part. A single question will typically admit dozens of candidate reasoning chains, and most of them don't survive inspection — they're stale, they route through some hub entity that connects to everything, or they assert an effect that nothing in the graph actually supports. To a relevance score they all look equally retrievable.
+Multi-hop question answering over a knowledge graph usually gets framed as retrieval: fetch a relevant subgraph, hand it to a language model, hope for the best. Fetching turns out to be the easy part. A single question will typically admit dozens of candidate reasoning chains, and most of them don't survive inspection they're stale, they route through some hub entity that connects to everything, or they assert an effect that nothing in the graph actually supports. To a relevance score they all look equally retrievable.
 
-So the interesting question isn't what to fetch. It's what to trust.
+This repository holds the code for two attempts at answering that. One scores the internal coherence of an evidence chain in closed form and selects on it. The other learns a selection policy directly, with reinforcement learning, and lets the reward function decide what coherence means. They share a premise: choosing evidence under a budget is a combinatorial optimization problem, and it's worth treating it as one.
 
-This repository holds the code for two attempts at answering that, from opposite directions. One scores the internal coherence of an evidence chain in closed form and selects on it. The other learns a selection policy directly, with reinforcement learning, and lets the reward function decide what coherence means. They share a premise: choosing evidence under a budget is a combinatorial optimization problem, and it's worth treating it as one.
+The methodology here was developed jointly with **Nisarg Patel (Google Research)**. Built on public SEC filings and public benchmark data.
 
 ---
 
@@ -73,20 +73,8 @@ Both pipelines are notebooks because both are research artifacts — the explora
 
 ## Running it
 
-```bash
-pip install rustworkx faiss-cpu sentence-transformers torch numpy scipy
-export GEMINI_API_KEY="..."     # only needed for the generation step
-jupyter notebook adjudication/pipeline.ipynb
-```
-
 Graph construction, indexing, and the retrieval pipeline were run on a single RTX 4090; generators were queried as hosted endpoints. The benchmark data and prebuilt graph indices aren't in the repo — they're large, and the construction scripts rebuild them from source.
 
 ## Limitations
 
 Reasoning is confined to what's in the graph, so a missing entity sends the pipeline to a dense-retrieval fallback that can be factually wrong — this drives the wrong-path failures above. Rules and weights are hand-set rather than learned from labeled violations. Evaluation covers one benchmark, one domain, and a fixed 2-hop budget. The submodular machinery is proved and then only partly used, since top-`P` ignores the couplings that motivate it.
-
----
-
-Some of the methodology here was developed jointly with **Nisarg Patel (Google Research)**, whose input shaped the selection formulation in particular.
-
-Built on public SEC filings and public benchmark data. No private data was used. This is research code and not financial advice — graph errors and model fabrications can mislead regardless of what the consistency score says.
